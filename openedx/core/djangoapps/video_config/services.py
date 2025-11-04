@@ -8,6 +8,8 @@ for the extracted video block in xblocks-contrib repository.
 
 import logging
 
+from typing import Optional, Tuple
+
 from opaque_keys.edx.keys import CourseKey, UsageKey
 
 from openedx.core.djangoapps.video_config import sharing
@@ -91,3 +93,23 @@ class VideoConfigService:
         Check if HLS playback is enabled for the course.
         """
         return HLSPlaybackEnabledFlag.feature_enabled(course_id)
+
+    def get_transcript(
+        self,
+        video_block,
+        lang: Optional[str] = None,
+        output_format: str = 'srt',
+        youtube_id: Optional[str] = None,
+    ) -> Tuple[bytes, str, str]:
+        """
+        Retrieve a transcript from the runtime's storage.
+
+        Returns:
+            tuple(bytes, str, str): transcript content, filename, and mimetype.
+
+        Raises:
+            Exception: If the transcript cannot be found or retrieved
+        """
+        # Import here to avoid circular dependency
+        from openedx.core.djangoapps.video_config.transcripts_utils import get_transcript
+        return get_transcript(video_block, lang, output_format, youtube_id)
