@@ -162,25 +162,6 @@ def individualize_anonymous_user_id(course_id):
     return INDIVIDUALIZE_ANONYMOUS_USER_ID.is_enabled(course_id)
 
 
-# .. toggle_name: legacy_studio.home
-# .. toggle_implementation: WaffleFlag
-# .. toggle_default: False
-# .. toggle_description: Temporarily fall back to the old Studio logged-in landing page.
-# .. toggle_use_cases: temporary
-# .. toggle_creation_date: 2025-03-14
-# .. toggle_target_removal_date: 2025-09-14
-# .. toggle_tickets: https://github.com/openedx/edx-platform/issues/36275
-# .. toggle_warning: In Ulmo, this toggle will be removed. Only the new (React-based) experience will be available.
-LEGACY_STUDIO_HOME = WaffleFlag('legacy_studio.home', __name__)
-
-
-def use_new_home_page():
-    """
-    Returns a boolean if new studio home page mfe is enabled
-    """
-    return not LEGACY_STUDIO_HOME.is_enabled()
-
-
 # .. toggle_name: legacy_studio.custom_pages
 # .. toggle_implementation: WaffleFlag
 # .. toggle_default: False
@@ -332,25 +313,6 @@ def use_new_export_page(course_key):
     return not LEGACY_STUDIO_EXPORT.is_enabled(course_key)
 
 
-# .. toggle_name: legacy_studio.files_uploads
-# .. toggle_implementation: WaffleFlag
-# .. toggle_default: False
-# .. toggle_description: Temporarily fall back to the old Studio Files & Uploads page.
-# .. toggle_use_cases: temporary
-# .. toggle_creation_date: 2025-03-14
-# .. toggle_target_removal_date: 2025-09-14
-# .. toggle_tickets: https://github.com/openedx/edx-platform/issues/36275
-# .. toggle_warning: In Ulmo, this toggle will be removed. Only the new (React-based) experience will be available.
-LEGACY_STUDIO_FILES_UPLOADS = CourseWaffleFlag('legacy_studio.files_uploads', __name__)
-
-
-def use_new_files_uploads_page(course_key):
-    """
-    Returns a boolean if new studio files and uploads mfe is enabled
-    """
-    return not LEGACY_STUDIO_FILES_UPLOADS.is_enabled(course_key)
-
-
 # .. toggle_name: contentstore.new_studio_mfe.use_new_video_uploads_page
 # .. toggle_implementation: CourseWaffleFlag
 # .. toggle_default: False
@@ -381,13 +343,6 @@ def use_new_video_uploads_page(course_key):
 # .. toggle_tickets: https://github.com/openedx/edx-platform/issues/36275
 # .. toggle_warning: In Ulmo, this toggle will be removed. Only the new (React-based) experience will be available.
 LEGACY_STUDIO_COURSE_OUTLINE = CourseWaffleFlag('legacy_studio.course_outline', __name__)
-
-
-def use_new_course_outline_page(course_key):
-    """
-    Returns a boolean if new studio course outline mfe is enabled
-    """
-    return not LEGACY_STUDIO_COURSE_OUTLINE.is_enabled(course_key)
 
 
 # .. toggle_name: legacy_studio.unit_editor

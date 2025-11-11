@@ -5,11 +5,13 @@ Serializers for the Course to Library Import API.
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import LearningContextKey
 from opaque_keys.edx.locator import LibraryLocatorV2
+from openedx_learning.api.authoring_models import Collection
 from rest_framework import serializers
+from user_tasks.models import UserTaskStatus
 from user_tasks.serializers import StatusSerializer
 
 from cms.djangoapps.modulestore_migrator.data import CompositionLevel, RepeatHandlingStrategy
-from cms.djangoapps.modulestore_migrator.models import ModulestoreMigration
+from cms.djangoapps.modulestore_migrator.models import ModulestoreMigration, ModulestoreSource
 
 
 class ModulestoreMigrationSerializer(serializers.Serializer):
@@ -22,7 +24,7 @@ class ModulestoreMigrationSerializer(serializers.Serializer):
         required=True,
     )
     target = serializers.CharField(
-        help_text="The target library V2 key to import into.",
+        help_text="The target content library V2 key to import into.",
         required=True,
     )
     composition_level = serializers.ChoiceField(
@@ -50,6 +52,11 @@ class ModulestoreMigrationSerializer(serializers.Serializer):
     )
     forward_source_to_target = serializers.BooleanField(
         help_text="Forward references of this block source over to the target of this block migration.",
+        required=False,
+        default=False,
+    )
+    is_failed = serializers.BooleanField(
+        help_text="It is true if this migration is failed",
         required=False,
         default=False,
     )
@@ -150,9 +157,9 @@ class BulkModulestoreMigrationSerializer(ModulestoreMigrationSerializer):
         return super().to_representation(instance)
 
 
-class StatusWithModulestoreMigrationSerializer(StatusSerializer):
+class StatusWithModulestoreMigrationsSerializer(StatusSerializer):
     """
-    Serializer for the import task status.
+    Serializer for the import task status, including 1+ migration objects.
     """
 
     parameters = ModulestoreMigrationSerializer(source='migrations', many=True)
@@ -168,3 +175,65 @@ class StatusWithModulestoreMigrationSerializer(StatusSerializer):
         fields = super().get_fields()
         fields.pop('name', None)
         return fields
+
+
+class LibraryMigrationCourseSourceSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the source course of a library migration.
+    """
+    display_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ModulestoreSource
+        fields = ['key', 'display_name']
+
+    def get_display_name(self, obj):
+        """
+        Return the display name of the source course
+        """
+        return self.context["course_names"].get(str(obj.key), None)
+
+
+class LibraryMigrationCollectionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the target collection of a library migration.
+    """
+    class Meta:
+        model = Collection
+        fields = ["key", "title"]
+
+
+class LibraryMigrationCourseSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the course or legacylibrary migrations to V2 library.
+    """
+    source = LibraryMigrationCourseSourceSerializer()  # type: ignore[assignment]
+    target_collection = LibraryMigrationCollectionSerializer(required=False)
+    state = serializers.SerializerMethodField()
+    progress = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ModulestoreMigration
+        fields = [
+            'source',
+            'target_collection',
+            'state',
+            'progress',
+        ]
+
+    def get_state(self, obj: ModulestoreMigration):
+        """
+        Return the state of the migration.
+        """
+        if obj.is_failed or obj.task_status.state in [UserTaskStatus.FAILED, UserTaskStatus.CANCELED]:
+            return UserTaskStatus.FAILED
+        elif obj.task_status.state == UserTaskStatus.SUCCEEDED:
+            return UserTaskStatus.SUCCEEDED
+
+        return UserTaskStatus.IN_PROGRESS
+
+    def get_progress(self, obj: ModulestoreMigration):
+        """
+        Return the progress of the migration.
+        """
+        return obj.task_status.completed_steps / obj.task_status.total_steps
