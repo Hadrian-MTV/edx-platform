@@ -270,7 +270,7 @@ class XModuleMixin(XModuleFields, XBlock):
         super().__init__(*args, **kwargs)
 
     def get_cds_init_args(self):
-        """ Get initialization data used by SplitModuleStoreRuntime to defer FieldData initialization """
+        """Get initialization data used by SplitModuleStoreRuntime to defer FieldData initialization"""
         if self._cds_init_args is None:
             raise KeyError("cds_init_args was not provided for this XBlock")
         if self._cds_init_args is False:
@@ -1380,7 +1380,7 @@ class ModuleStoreRuntime(_MetricsMixin, _ConfigurableFragmentWrapper, _ModuleSys
         get_policy=None,
         render_template=None,
         disabled_xblock_types=lambda: [],
-        **kwargs
+        **kwargs,
     ):
         """
         load_item: Takes a Location and returns an XModuleDescriptor
@@ -1424,9 +1424,10 @@ class ModuleStoreRuntime(_MetricsMixin, _ConfigurableFragmentWrapper, _ModuleSys
             # a few cases where the MakoService is not added to the XBlock's runtime. Specifically: * in the Instructor
             # Dashboard bulk emails tab, when rendering the HtmlBlock for its WYSIWYG editor. * during testing, when
             # fetching factory-created blocks.
-            if 'mako' not in self._services:
+            if "mako" not in self._services:
                 from common.djangoapps.edxmako.services import MakoService
-                self._services['mako'] = MakoService()
+
+                self._services["mako"] = MakoService()
 
         self.disabled_xblock_types = disabled_xblock_types
 
@@ -1480,7 +1481,7 @@ class ModuleStoreRuntime(_MetricsMixin, _ConfigurableFragmentWrapper, _ModuleSys
             result["default_value"] = field.to_json(field.default)
         return result
 
-    def handler_url(self, block, handler_name, suffix='', query='', thirdparty=False):
+    def handler_url(self, block, handler_name, suffix="", query="", thirdparty=False):
         # When the Modulestore instantiates ModuleStoreRuntime, we will reference a
         # global function that the application can override, unless a specific function is
         # defined for LMS/CMS through the handler_url_override property.
