@@ -148,6 +148,7 @@ class TestSendResponseNotifications(DiscussionAPIViewTestMixin, ModuleStoreTestC
             'topic_id': None,
             'thread_id': 1,
             'comment_id': None,
+            'group_by_id': '1',
         }
         self.assertDictEqual(args.context, expected_context)
         self.assertEqual(

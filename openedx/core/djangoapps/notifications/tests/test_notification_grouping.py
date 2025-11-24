@@ -13,7 +13,7 @@ from openedx.core.djangoapps.notifications.grouping_notifications import (
     BaseNotificationGrouper,
     NotificationRegistry,
     group_user_notifications,
-    get_user_existing_notifications, NewPostGrouper
+    get_user_existing_notifications, NewPostGrouper, NewResponseGrouper
 )
 from openedx.core.djangoapps.notifications.models import Notification
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
@@ -104,6 +104,26 @@ class TestGroupUserNotifications(ModuleStoreTestCase):
         """
         # Mock the grouper
         mock_grouper = MagicMock(spec=NewPostGrouper)
+        mock_get_grouper.return_value = mock_grouper
+
+        new_notification = MagicMock(spec=Notification)
+        old_notification = MagicMock(spec=Notification)
+
+        group_user_notifications(new_notification, old_notification)
+
+        mock_grouper.group.assert_called_once_with(new_notification, old_notification)
+        self.assertTrue(old_notification.save.called)
+        self.assertIsNone(old_notification.last_read)
+        self.assertIsNone(old_notification.last_seen)
+        self.assertIsNotNone(old_notification.created)
+
+    @patch('openedx.core.djangoapps.notifications.grouping_notifications.NotificationRegistry.get_grouper')
+    def test_group_user_new_response(self, mock_get_grouper):
+        """
+        Test that the function groups notifications using the appropriate grou
+        """
+        # Mock the grouper
+        mock_grouper = MagicMock(spec=NewResponseGrouper)
         mock_get_grouper.return_value = mock_grouper
 
         new_notification = MagicMock(spec=Notification)
