@@ -92,15 +92,16 @@ class HiddenContentTransformer(BlockStructureTransformer):
         if usage_info.has_staff_access:
             return [block_structure.create_universal_filter()]
 
-        block_structure.remove_block_traversal(lambda block_key: self._is_block_hidden(block_structure, block_key))
+        self_paced = block_structure.get_xblock_field(block_structure.root_block_usage_key, 'self_paced', False)
 
-    def _is_block_hidden(self, block_structure, block_key):
+        block_structure.remove_block_traversal(lambda block_key: self._is_block_hidden(block_structure, block_key, self_paced))
+
+    def _is_block_hidden(self, block_structure, block_key, self_paced):
         """
         Returns whether the block with the given block_key should
         be hidden, given the current time.
         """
         hide_after_due = self._get_merged_hide_after_due(block_structure, block_key)
-        self_paced = block_structure[block_structure.root_block_usage_key].self_paced
         if self_paced:
             hidden_date = self._get_merged_end_date(block_structure, block_key)
         else:
