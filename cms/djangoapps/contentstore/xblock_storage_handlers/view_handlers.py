@@ -518,7 +518,9 @@ def _save_xblock(
                 "changed_xblock_ids": changed_xblock_ids,
                 "revoke_certificates": revoke_certificates
             }
+            log.info(f'Emitting XBLOCK_CHANGES_ON_PUBLISH signal')
             XBLOCK_CHANGES_ON_PUBLISH.send(sender=None, user=None, data=data)
+            log.info(f'XBLOCK_CHANGES_ON_PUBLISH signal completed')
 
         # If summary_configuration_enabled is not None, use AIAsideSummary to update it.
         if xblock.category == "vertical" and summary_configuration_enabled is not None:
